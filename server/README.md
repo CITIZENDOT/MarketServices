@@ -63,3 +63,7 @@ There are no tables which uses rows from `Feedbacks`/`Payments` table. So, `feed
   ```bash
   yarn run dev
   ```
+
+#### Because I wanted to mention
+
+- I asked a question on [dba.stackexchange](https://dba.stackexchange.com) regarding constraints on `Payments` table, where I got required answer. [Here's the question](https://dba.stackexchange.com/q/301580/236454).

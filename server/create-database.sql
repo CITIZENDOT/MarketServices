@@ -41,9 +41,8 @@ CREATE TABLE `Payments`(
     `penalty` INT NOT NULL,
     `dueDate` DATE NOT NULL,
     `paymentDate` DATE,
-    `paymentDateYear` SMALLINT GENERATED ALWAYS AS (YEAR(`paymentDate`)) STORED,
-    `paymentDateMonth` SMALLINT GENERATED ALWAYS AS (MONTH(`paymentDate`)) STORED,
-    PRIMARY KEY (`licenseId`, `paymentType`, `paymentDateYear`, `paymentDateMonth`),
+    -- UNIQUE KEY because PRIMARY KEY doesn't support Functional Keys
+    UNIQUE KEY (`licenseId`, `paymentType`, (YEAR(`dueDate`)), (MONTH(`dueDate`))),
     FOREIGN KEY(`licenseId`) REFERENCES `Licenses`(`licenseId`)
 );
 
