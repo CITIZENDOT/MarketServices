@@ -3,13 +3,15 @@ const bcrypt = require("bcrypt");
 
 async function insertUser(userProps) {
   const { email, userRole, firstName, lastName, password } = userProps;
-  if (userRole != "CUSTOMER" && userRole != "SHOPKEEPER")
-    throw Error("UserRole must be either 'CUSTOMER' OR 'SHOPKEEPER'");
+  if (!(email && userRole && firstName && password))
+    throw Error("Email/UserRole/FirstName/Password cannot be empty");
+  // if (userRole != "CUSTOMER" && userRole != "SHOPKEEPER")
+  //   throw Error("UserRole must be either 'CUSTOMER' OR 'SHOPKEEPER'");
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     await db.execute(
       "INSERT INTO Users (email, userRole, firstName, lastName, hashedPassword) VALUES (?, ?, ?, ?, ?)",
-      [email, userRole, firstName, lastName, hashedPassword]
+      [email, userRole, firstName, lastName || null, hashedPassword]
     );
     return "User successfully registered. You may now login.";
   } catch (err) {
@@ -24,6 +26,7 @@ async function insertUser(userProps) {
 }
 
 async function getUser(email, password) {
+  if (!(email && password)) throw Error("Email/Password cannot be empty");
   try {
     const [rows] = await db.execute("SELECT * FROM Users WHERE email = ?", [
       email
@@ -52,8 +55,18 @@ async function changePassword(email, currentPassword, newPassword) {
   }
 }
 
+async function getAllUsers() {
+  try {
+    const [rows] = await db.execute("SELECT * FROM Users");
+    return rows;
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   insertUser,
   getUser,
-  changePassword
+  changePassword,
+  getAllUsers
 };

@@ -6,6 +6,8 @@ Else updates the row.
  */
 async function insertGatepass(gatepassProps) {
   const { shopKeeperUserId, endDate } = gatepassProps;
+  if (!(shopKeeperUserId && endDate))
+    throw Error("shopKeeperUserId/EndDate cannot be empty");
   try {
     await db.execute(
       "INSERT INTO Gatepasses (shopKeeperUserId, endDate) VALUES (?, ?) ON DUPLICATE KEY UPDATE `endDate` = endDate",

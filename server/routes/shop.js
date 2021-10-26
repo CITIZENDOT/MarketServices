@@ -4,10 +4,7 @@ const { isLoggedIn, isAdmin } = require("../middlewares/user");
 
 router.post("/", isLoggedIn, isAdmin, async function (req, res) {
   const { shopName, landmark, rentPerMonth } = req.body;
-  if (!(shopName && rentPerMonth))
-    return res.status(400).json({
-      message: "Shopname/rentPerMonth cannot be empty"
-    });
+
   try {
     const message = await insertShop({
       shopName,

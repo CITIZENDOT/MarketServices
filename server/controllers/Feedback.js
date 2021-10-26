@@ -2,6 +2,8 @@ const db = require("../db");
 
 async function insertFeedback(feedbackProps) {
   const { licenseId, customerId, rating, remarks } = feedbackProps;
+  if (!(licenseId && !(rating % 1)))
+    throw Error("licenseId/rating cannot be empty");
   try {
     await db.execute(
       "INSERT INTO Feedbacks (licenseId, customerId, rating, remarks) VALUES (?, ?, ?, ?, ?)",

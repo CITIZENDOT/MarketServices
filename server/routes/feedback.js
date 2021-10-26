@@ -5,10 +5,6 @@ const { isLoggedIn, isCustomer, isAdmin } = require("../middlewares/user");
 router.post("/", isLoggedIn, isCustomer, async function (req, res) {
   const { licenseId, rating, remarks } = req.body;
   const customerId = req.user.userId;
-  if (!(licenseId && !(rating % 1)))
-    return res.status(400).json({
-      message: "licenseId/rating cannot be empty"
-    });
   try {
     const message = await insertFeedback({
       licenseId,

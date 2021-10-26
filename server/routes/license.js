@@ -4,10 +4,6 @@ const { isLoggedIn, isAdmin } = require("../middlewares/user");
 
 router.post("/", isLoggedIn, isAdmin, async function (req, res) {
   const { shopKeeperUserId, shopId, startDate, endDate } = req.body;
-  if (!(shopKeeperUserId && shopId && startDate && endDate))
-    return res.status(400).json({
-      message: "shopKeeperUserId/shopId/startDate/endDate cannot be empty"
-    });
   try {
     const message = await insertLicense({
       shopKeeperUserId,

@@ -41,6 +41,7 @@ There are no tables which uses rows from `Feedbacks`/`Payments` table. So, `feed
   - Run below queries in MySQL shell as **root** user, to create database.
 
   ```sql
+  mysql> SET GLOBAL event_scheduler = ON;
   mysql> CREATE DATABASE MarketServices;
   mysql> CREATE USER 'MarketAdmin'@'localhost' IDENTIFIED BY 'Y@8e=nZNJgnQhC@a';
   mysql> GRANT ALL PRIVILEGES ON MarketServices.* TO 'MarketAdmin'@'localhost';

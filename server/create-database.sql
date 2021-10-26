@@ -1,3 +1,13 @@
+DROP TABLE IF EXISTS `Gatepasses`;
+DROP TABLE IF EXISTS `Payments`;
+DROP TABLE IF EXISTS `Feedbacks`;
+DROP TABLE IF EXISTS `Licenses`;
+DROP TABLE IF EXISTS `Users`;
+DROP TABLE IF EXISTS `Shops`;
+DROP FUNCTION IF EXISTS `checkUserRole`;
+DROP PROCEDURE IF EXISTS `resetDB`;
+
+
 CREATE TABLE `Users`(
     `userId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `email` VARCHAR(255) UNIQUE CHECK (`email` RLIKE '^\\S+@\\S+\\.\\S+$') NOT NULL,
@@ -17,12 +27,14 @@ CREATE TABLE `Gatepasses`(
 
 CREATE TABLE `Shops`(
     `shopId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
-    `shopName` VARCHAR(30) NOT NULL,
+    `shopName` VARCHAR(50) NOT NULL,
     `landmark` VARCHAR(100),
     `rentPerMonth` INT NOT NULL
 );
 
 
+-- TODO: Create an Event Scheduler, to check license validity every day.
+-- TODO: Create Notifications Table, and store reminder mail details there.
 CREATE TABLE `Licenses`(
     `licenseId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `shopKeeperUserId` INT NOT NULL,
@@ -61,16 +73,18 @@ CREATE TABLE `Feedbacks`(
 -- MySQL Function
 -- Name is pretty much self-explanatory, i.e., checks user role.
 DELIMITER $$
-CREATE FUNCTION checkUserRole (userId INT, userRole VARCHAR(10))
+CREATE FUNCTION `checkUserRole` (userId INT, userRole VARCHAR(10))
 RETURNS BOOLEAN DETERMINISTIC
 BEGIN
 DECLARE result BOOLEAN DEFAULT 0;
-SELECT 1 INTO result FROM `Users` WHERE `userId` = userId AND `userRole` = userRole;
+SELECT 1 INTO result FROM `Users` WHERE `userId` = userId AND `userRole` = userRole LIMIT 1;
 RETURN result;
 END $$
+DELIMITER ;
 
 
 -- Gatepass should be issued only for ShopKeepers
+DELIMITER $$
 CREATE TRIGGER `check_gatepass`
 BEFORE INSERT ON `Gatepasses` FOR EACH ROW
 BEGIN
@@ -79,9 +93,11 @@ SIGNAL SQLSTATE '45000'
 SET MESSAGE_TEXT = 'Given user is NOT a ShopKeeper';
 END IF;
 END $$
+DELIMITER ;
 
 
 -- License Constraints
+DELIMITER $$
 CREATE TRIGGER `check_license`
 BEFORE INSERT ON `Licenses` FOR EACH ROW
 BEGIN
@@ -90,9 +106,11 @@ SIGNAL SQLSTATE '45000'
 SET MESSAGE_TEXT = 'Given user is NOT a ShopKeeper';
 END IF;
 END $$
+DELIMITER ;
 
 
 -- Feedback Constraints
+DELIMITER $$
 CREATE TRIGGER `check_feedback`
 BEFORE INSERT ON `Feedbacks` FOR EACH ROW
 BEGIN
@@ -100,5 +118,18 @@ IF NOT checkUserRole(NEW.customerId, 'CUSTOMER') THEN
 SIGNAL SQLSTATE '45000'
 SET MESSAGE_TEXT = 'Given user is NOT a customer';
 END IF;
+END $$
+DELIMITER ;
+
+-- Reset Database
+DELIMITER $$
+CREATE PROCEDURE `resetDB` ()
+BEGIN
+DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS Shops;
+DROP TABLE IF EXISTS Licenses;
+DROP TABLE IF EXISTS Payments;
+DROP TABLE IF EXISTS Feedbacks;
+DROP TABLE IF EXISTS Gatepasses;
 END $$
 DELIMITER ;

@@ -19,16 +19,12 @@ function createToken(user) {
 
 router.post("/register", async function (req, res) {
   const { email, userRole, firstName, lastName, password } = req.body;
-  if (!(email && userRole && firstName && password))
-    return res.status(400).json({
-      message: "Email/UserRole/FirstName/Password cannot be empty"
-    });
   try {
     const message = await insertUser({
       email,
       userRole,
       firstName,
-      lastName: lastName || null,
+      lastName,
       password
     });
     return res.status(200).json({
@@ -43,10 +39,6 @@ router.post("/register", async function (req, res) {
 
 router.post("/login", async function (req, res) {
   const { email, password } = req.body;
-  if (!(email && password))
-    return res.status(400).json({
-      message: "Email/Password cannot be empty"
-    });
 
   try {
     const user = await getUser(email, password);
