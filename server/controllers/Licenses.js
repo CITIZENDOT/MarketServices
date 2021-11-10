@@ -15,11 +15,15 @@ async function insertLicense(licenseProps) {
   }
 }
 
-/* Returns *active* licenses */
+/* Returns active licenses */
 async function getAllLicenses() {
   try {
     const [rows] = await db.execute(
-      "SELECT * FROM Licenses WHERE startDate <= CURDATE() AND CURDATE() <= endDate"
+      `SELECT licenseId, shopKeeperUserId, firstName, lastName, CONCAT_WS(' ', firstName, lastName) AS fullName, Licenses.shopId, shopName, landmark, rentPerMonth, startDate, endDate
+      FROM Licenses
+      INNER JOIN Users ON Licenses.shopKeeperUserId = Users.userId
+      INNER JOIN Shops ON Licenses.shopId = Shops.shopId
+      WHERE startDate <= CURDATE() AND CURDATE() <= endDate`
     );
     return rows;
   } catch (err) {
@@ -27,7 +31,20 @@ async function getAllLicenses() {
   }
 }
 
+async function getLicenseById(licenseId) {
+  try {
+    const [row] = await db.execute(
+      "SELECT * FROM Liceses WHERE licenseId = ?",
+      [licenseId]
+    );
+    return row[0];
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   insertLicense,
+  getLicenseById,
   getAllLicenses
 };

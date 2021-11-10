@@ -7,6 +7,7 @@ import Alert from "@mui/material/Alert";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
 import Slide from "@mui/material/Slide";
 
 import Box from "@mui/material/Box";
@@ -55,7 +56,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
 });
 
-function FeedbackDialog({ open, onClose, licenseId }) {
+function FeedbackDialog({ dialogInfo, onClose }) {
   const [value, setValue] = useState(3);
   const [hover, setHover] = useState(-1);
   const [alert, setAlert] = useState({
@@ -68,7 +69,7 @@ function FeedbackDialog({ open, onClose, licenseId }) {
     const { rating, remarks } = event.target;
     try {
       const response = await axios.post("/feedback", {
-        licenseId,
+        licenseId: dialogInfo.licenseId,
         rating: (rating.value - 3) * 5,
         remarks: remarks.value
       });
@@ -76,7 +77,6 @@ function FeedbackDialog({ open, onClose, licenseId }) {
         severity: "info",
         message: "Feedback Sent Succesfully"
       });
-      console.log(response);
       setAlert({
         severity: null,
         message: null
@@ -95,7 +95,7 @@ function FeedbackDialog({ open, onClose, licenseId }) {
 
   return (
     <Dialog
-      open={open}
+      open={dialogInfo.open}
       onClose={onClose}
       maxWidth="lg"
       fullWidth={true}
@@ -120,65 +120,63 @@ function FeedbackDialog({ open, onClose, licenseId }) {
             marginBottom: 1
           }}
         >
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Typography
               sx={{
                 fontWeight: "light",
                 fontSize: "1.75em",
                 marginRight: 3,
-                textAlign: "right"
+                textAlign: "center"
               }}
             >
-              LicenseId :
-            </Typography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                fontSize: "1.5em",
-                textAlign: "left"
-              }}
-            >
-              {licenseId}
+              {dialogInfo.shopKeeperName}@<u>{dialogInfo.shopName}</u>
             </Typography>
           </Grid>
 
           <Grid item xs={12}>
             <form onSubmit={handleSubmit}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginTop: 3
-                }}
-              >
-                <Rating
-                  value={value}
-                  IconContainerComponent={IconContainer}
-                  highlightSelectedOnly
-                  onChange={(event, newValue) => {
-                    setValue(newValue);
-                  }}
-                  onChangeActive={(event, newHover) => {
-                    setHover(newHover);
-                  }}
+              <Grid container spacing={3}>
+                <Grid
+                  item
+                  xs={6}
                   sx={{
-                    textAlign: "center"
-                  }}
-                  name="rating"
-                />
-                <Typography
-                  sx={{
-                    display: "inline-block",
-                    marginLeft: 2
+                    textAlign: "right"
                   }}
                 >
-                  {customIcons[hover !== -1 ? hover : value].label}
-                </Typography>
-              </Box>
+                  <Rating
+                    value={value}
+                    IconContainerComponent={IconContainer}
+                    highlightSelectedOnly
+                    onChange={(event, newValue) => {
+                      setValue(newValue);
+                    }}
+                    onChangeActive={(event, newHover) => {
+                      setHover(newHover);
+                    }}
+                    sx={{
+                      textAlign: "center"
+                    }}
+                    name="rating"
+                  />
+                </Grid>
+
+                <Grid
+                  item
+                  xs={6}
+                  sx={{
+                    // textAlign: "left",
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    alignItems: "center"
+                  }}
+                >
+                  {value !== null && (
+                    <Typography sx={{ fontSize: "large" }}>
+                      {customIcons[hover !== -1 ? hover : value].label}
+                    </Typography>
+                  )}
+                </Grid>
+              </Grid>
 
               <TextField
                 label="Remarks"
@@ -195,6 +193,9 @@ function FeedbackDialog({ open, onClose, licenseId }) {
           </Grid>
         </Grid>
       </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Close</Button>
+      </DialogActions>
     </Dialog>
   );
 }
@@ -203,15 +204,16 @@ export default function Home() {
   const [licenses, setLicenses] = useState([]);
   const { user } = useAuth();
   const [dialogInfo, setDialogInfo] = useState({
-    open: false,
-    licenseId: null
+    open: false
   });
 
   const handleFeedbackDialogOpen = (params) => {
     setDialogInfo({
       ...dialogInfo,
       open: true,
-      licenseId: params.row.licenseId
+      licenseId: params.row.licenseId,
+      shopKeeperName: params.row.fullName,
+      shopName: params.row.shopName
     });
   };
   const handleFeedbackDialogClose = () => {
@@ -230,14 +232,15 @@ export default function Home() {
       type: "number"
     },
     {
-      field: "shopKeeperEmail",
+      field: "fullName",
       headerName: "Shop Keeper",
-      flex: 1
+      flex: 1,
+      type: "string"
     },
     {
-      field: "shopId",
+      field: "shopName",
       headerName: "Shop",
-      flex: 0.5
+      flex: 1
     },
     {
       field: "startDate",
@@ -280,6 +283,19 @@ export default function Home() {
     });
   }
 
+  if (user && user.userRole === "SHOPKEEPER") {
+    columns.push({
+      field: "rentPerMonth",
+      headerName: "Rent / Month",
+      flex: 1,
+      valueFormatter: (params) =>
+        new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR"
+        }).format(params.value)
+    });
+  }
+
   useEffect(() => {
     async function fetchLicenses() {
       try {
@@ -295,10 +311,8 @@ export default function Home() {
   return user && licenses ? (
     <div style={{ height: "80vh", width: "100%" }}>
       <FeedbackDialog
-        open={dialogInfo.open}
+        dialogInfo={dialogInfo}
         onClose={handleFeedbackDialogClose}
-        shopKeeperEmail={dialogInfo.shopKeeperEmail}
-        shopId={dialogInfo.shopId}
       />
       <DataGrid
         getRowId={(row) => row.licenseId}

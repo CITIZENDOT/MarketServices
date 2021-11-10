@@ -8,6 +8,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./components/user/Profile";
+import Payments from "./components/Payments";
 import ChangePassword from "./components/user/ChangePassword";
 
 function App() {
@@ -23,6 +24,9 @@ function App() {
           </Route>
           <PrivateRoute path="/profile">
             <Profile />
+          </PrivateRoute>
+          <PrivateRoute path="/payments" userRole="SHOPKEEPER">
+            <Payments />
           </PrivateRoute>
           <PrivateRoute path="/change-password">
             <ChangePassword />

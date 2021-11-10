@@ -6,7 +6,7 @@ async function insertFeedback(feedbackProps) {
     throw Error("licenseId/rating cannot be empty");
   try {
     await db.execute(
-      "INSERT INTO Feedbacks (licenseId, customerId, rating, remarks) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO Feedbacks (licenseId, customerId, rating, remarks) VALUES (?, ?, ?, ?)",
       [licenseId, customerId, rating, remarks]
     );
     return "Feedback submitted successfully";

@@ -22,6 +22,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
+import MoneyIcon from "@mui/icons-material/Money";
 
 const drawerWidth = 240;
 
@@ -151,6 +152,14 @@ export default function Nav({ children }) {
                 </ListItemIcon>
                 <ListItemText primary="Profile" />
               </ListItem>
+              {user.userRole === "SHOPKEEPER" && (
+                <ListItem button component={Link} to="/payments">
+                  <ListItemIcon>
+                    <MoneyIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Payments" />
+                </ListItem>
+              )}
               <ListItem button component={Link} to="/change-password">
                 <ListItemIcon>
                   <LockOpenIcon />

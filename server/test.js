@@ -5,11 +5,8 @@ async function f(n) {
   });
 }
 
-function g() {
-  try {
-    const res = await f(10);
-  } catch (err) {
-    console.log("in err");
-    console.log(err);
-  }
+try {
+  const res = await f(10);
+} catch (err) {
+  console.log(err);
 }

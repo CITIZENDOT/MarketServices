@@ -5,7 +5,6 @@ DROP TABLE IF EXISTS `Licenses`;
 DROP TABLE IF EXISTS `Users`;
 DROP TABLE IF EXISTS `Shops`;
 DROP FUNCTION IF EXISTS `checkUserRole`;
-DROP PROCEDURE IF EXISTS `resetDB`;
 
 
 CREATE TABLE `Users`(
@@ -46,7 +45,9 @@ CREATE TABLE `Licenses`(
 );
 
 
+-- TODO: If `paymentType` == 'RENT', Assert `rentPerMonth` = `amount` with BEFORE INSERT trigger.
 CREATE TABLE `Payments`(
+    `paymentId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `licenseId` INT NOT NULL,
     `paymentType` VARCHAR(15) CHECK (`paymentType` IN ('RENT', 'ELECTRICITY')) NOT NULL,
     `amount` INT NOT NULL,
@@ -118,18 +119,5 @@ IF NOT checkUserRole(NEW.customerId, 'CUSTOMER') THEN
 SIGNAL SQLSTATE '45000'
 SET MESSAGE_TEXT = 'Given user is NOT a customer';
 END IF;
-END $$
-DELIMITER ;
-
--- Reset Database
-DELIMITER $$
-CREATE PROCEDURE `resetDB` ()
-BEGIN
-DROP TABLE IF EXISTS Users;
-DROP TABLE IF EXISTS Shops;
-DROP TABLE IF EXISTS Licenses;
-DROP TABLE IF EXISTS Payments;
-DROP TABLE IF EXISTS Feedbacks;
-DROP TABLE IF EXISTS Gatepasses;
 END $$
 DELIMITER ;

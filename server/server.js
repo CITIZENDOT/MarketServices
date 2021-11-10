@@ -15,7 +15,8 @@ app.use("/shop", require("./routes/shop"));
 app.use("/gatepass", require("./routes/gatepass"));
 app.use("/license", require("./routes/license"));
 app.use("/feedback", require("./routes/feedback"));
+app.use("/payment", require("./routes/payment"));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", function () {
   console.log(`Server is listening at http://localhost:${PORT}`);
 });

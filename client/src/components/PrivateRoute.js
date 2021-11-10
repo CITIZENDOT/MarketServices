@@ -1,14 +1,14 @@
 import { Route, Redirect } from "react-router-dom";
 import { useAuth } from "../use-auth";
 
-export default function PrivateRoute({ children, ...rest }) {
+export default function PrivateRoute({ children, userRole, ...rest }) {
   const { user } = useAuth();
 
   return (
     <Route
       {...rest}
       render={({ location }) => {
-        return user ? (
+        return user && (userRole ? user.userRole === userRole : true) ? (
           children
         ) : (
           <Redirect
