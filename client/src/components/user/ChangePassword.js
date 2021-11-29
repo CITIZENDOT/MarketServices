@@ -1,20 +1,10 @@
-import React, { useState } from "react";
-
+import React from "react";
 import axios from "../../axios";
-import Cookies from "js-cookie";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import Container from "@mui/material/Container";
-
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import { Box, Container, TextField, Button } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
+import { toastOptions } from "../../utils";
 
 export default function ChangePassword() {
-  const [alert, setAlert] = useState({
-    severity: null,
-    message: null
-  });
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { currentPassword, newPassword } = event.target;
@@ -24,15 +14,9 @@ export default function ChangePassword() {
         currentPassword: currentPassword.value,
         newPassword: newPassword.value
       });
-      setAlert({
-        severity: "info",
-        message: response.data.message
-      });
+      toast.success(response.data.message, toastOptions);
     } catch (err) {
-      setAlert({
-        severity: "error",
-        message: err.response.data.message
-      });
+      toast.error(err.response.data.message, toastOptions);
     }
   };
 
@@ -44,9 +28,7 @@ export default function ChangePassword() {
       }}
     >
       <h1>Change Password</h1>
-      {alert.message && (
-        <Alert severity={alert.severity}>{alert.message}</Alert>
-      )}
+      <ToastContainer />
       <form onSubmit={handleSubmit}>
         <Box>
           <TextField

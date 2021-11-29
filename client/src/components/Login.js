@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import { Link, Redirect, useLocation } from "react-router-dom";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import Container from "@mui/material/Container";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import { Box, Container, TextField, Button } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
 import { useAuth } from "../use-auth";
 
 export default function Login() {
@@ -12,27 +9,34 @@ export default function Login() {
   const [successRedirect, setSuccessRedirect] = useState(false);
   const { state } = useLocation();
 
-  const [alert, setAlert] = useState({
-    severity: state ? state.severity : null,
-    message: state ? state.message : null
-  });
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     const { email, password } = event.target;
     try {
-      const response = await logIn(email.value, password.value);
+      await logIn(email.value, password.value);
       setSuccessRedirect(true);
     } catch (err) {
-      console.log(err.response);
-      setAlert({
-        severity: "error",
-        message: err.response.data.message
+      console.log(err);
+      toast.error(err.response.data.message, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
       });
     }
   };
 
-  if (successRedirect) return <Redirect to={state?.from || "/"} />;
+  if (successRedirect)
+    return (
+      <Redirect
+        to={{
+          pathname: state?.from || "/",
+          state: { showAlert: true }
+        }}
+      />
+    );
 
   return (
     <Container
@@ -42,9 +46,7 @@ export default function Login() {
       }}
     >
       <h1>Login</h1>
-      {alert.message && (
-        <Alert severity={alert.severity}>{alert.message}</Alert>
-      )}
+      <ToastContainer />
       <form onSubmit={handleSubmit}>
         <Box>
           <TextField

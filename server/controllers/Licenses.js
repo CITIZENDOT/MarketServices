@@ -19,7 +19,7 @@ async function insertLicense(licenseProps) {
 async function getAllLicenses() {
   try {
     const [rows] = await db.execute(
-      `SELECT licenseId, shopKeeperUserId, firstName, lastName, CONCAT_WS(' ', firstName, lastName) AS fullName, Licenses.shopId, shopName, landmark, rentPerMonth, startDate, endDate
+      `SELECT licenseId, shopKeeperUserId, email, firstName, lastName, CONCAT_WS(' ', firstName, lastName) AS fullName, Licenses.shopId, shopName, landmark, rentPerMonth, startDate, endDate
       FROM Licenses
       INNER JOIN Users ON Licenses.shopKeeperUserId = Users.userId
       INNER JOIN Shops ON Licenses.shopId = Shops.shopId
@@ -43,8 +43,17 @@ async function getLicenseById(licenseId) {
   }
 }
 
+async function extendLicense(licenseId, endDate) {
+  await db.execute("UPDATE Licenses SET endDate = ? WHERE licenseId = ?", [
+    endDate,
+    licenseId
+  ]);
+  return "License extended";
+}
+
 module.exports = {
   insertLicense,
   getLicenseById,
-  getAllLicenses
+  getAllLicenses,
+  extendLicense
 };

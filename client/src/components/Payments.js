@@ -3,39 +3,31 @@ import { DataGrid } from "@mui/x-data-grid";
 import axios from "../axios";
 import { useAuth } from "../use-auth";
 
-import Alert from "@mui/material/Alert";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
-import Slide from "@mui/material/Slide";
-import Typography from "@mui/material/Typography";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
+  Slide,
+  Typography
+} from "@mui/material";
+
+import { ToastContainer, toast } from "react-toastify";
+import { toastOptions } from "../utils";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="left" ref={ref} {...props} />;
 });
 
 function PaymentDialog({ dialogInfo, onClose }) {
-  const [alert, setAlert] = useState({
-    severity: null,
-    message: null
-  });
-
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Submitting: ", dialogInfo);
     try {
       const response = await axios.get(`payment/pay/${dialogInfo.paymentId}`);
-      setAlert({
-        severity: "success",
-        message: response.data.message
-      });
+      toast.success(response.data.message, toastOptions);
     } catch (err) {
-      setAlert({
-        severity: "danger",
-        message: err.response.data.message
-      });
+      toast.error(err.response.data.message, toastOptions);
     }
   };
 
@@ -49,9 +41,6 @@ function PaymentDialog({ dialogInfo, onClose }) {
     >
       <DialogTitle>Payment</DialogTitle>
       <DialogContent>
-        {alert.message && (
-          <Alert severity={alert.severity}>{alert.message}</Alert>
-        )}
         <Typography>
           <b>Shop:</b> {dialogInfo.shopName}
         </Typography>
@@ -88,7 +77,31 @@ export default function Payments() {
   const [dialogInfo, setDialogInfo] = useState({
     open: false
   });
-  const { logOut } = useAuth();
+  const { user, logOut } = useAuth();
+
+  const confirmPayment = async (event, paymentId) => {
+    event.preventDefault();
+    try {
+      const response = await axios.get(`/payment/confirm/${paymentId}`);
+      await fetchPayments();
+      toast.success(response.data.message, toastOptions);
+      setDialogInfo({ open: false });
+    } catch (err) {
+      toast.error(err.response.data.message, toastOptions);
+    }
+  };
+
+  const fetchPayments = async () => {
+    try {
+      let url = "/payment/my";
+      if (user.userRole === "ADMIN") url = "/payment/all";
+      const response = await axios.get(url);
+      console.log(response.data);
+      setPayments(response.data);
+    } catch (err) {
+      logOut();
+    }
+  };
 
   const columns = [
     {
@@ -136,10 +149,14 @@ export default function Payments() {
           : "Pending"
     },
     {
-      // TODO:
-      // [x] Render "Pay now" button here, if paymentDate is null.
-      // It should open a modal showing all details.
-      // Two buttons in the modal to Pay/Close.
+      field: "paymentStatus",
+      headerName: "Status",
+      flex: 1
+    }
+  ];
+
+  if (user.userRole === "SHOPKEEPER")
+    columns.push({
       field: "paymentDate",
       headerName: "Payment Date",
       flex: 1,
@@ -159,19 +176,35 @@ export default function Payments() {
           year: "numeric"
         });
       }
-    }
-  ];
+    });
+  else if (user.userRole === "ADMIN") {
+    columns.push({
+      field: "",
+      headerName: "Action",
+      flex: 1,
+      renderCell: (params) => {
+        if (params.row.paymentStatus === "PENDING APPROVAL")
+          return (
+            <Button
+              color="success"
+              variant="contained"
+              onClick={(event) => confirmPayment(event, params.row.paymentId)}
+            >
+              Approve
+            </Button>
+          );
+      }
+    });
+    columns.unshift.apply(columns, [
+      {
+        field: "fullName",
+        headerName: "Shop Keeper",
+        flex: 1
+      }
+    ]);
+  }
 
   useEffect(() => {
-    async function fetchPayments() {
-      try {
-        const response = await axios.get("/payment/my");
-        console.log(response.data);
-        setPayments(response.data);
-      } catch (err) {
-        logOut();
-      }
-    }
     fetchPayments();
   }, []);
 
@@ -183,7 +216,8 @@ export default function Payments() {
     });
   };
 
-  const handleDialogClose = () => {
+  const handleDialogClose = async () => {
+    await fetchPayments();
     setDialogInfo({
       open: false
     });
@@ -192,11 +226,12 @@ export default function Payments() {
   return payments != null ? (
     <div style={{ height: "80vh", width: "100%" }}>
       <PaymentDialog dialogInfo={dialogInfo} onClose={handleDialogClose} />
+      <ToastContainer />
       <DataGrid
         getRowId={(row) => `${row.licenseId} ${row.paymentType} ${row.dueDate}`}
         rows={payments}
         columns={columns}
-        pageSize={5}
+        pageSize={10}
         rowsPerPageOptions={[10]}
       />
     </div>

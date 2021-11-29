@@ -30,6 +30,12 @@ There are no tables which uses rows from `Feedbacks`/`Payments` table. So, `feed
 
 </details>
 
+<details><summary><b>Why don't we have <code>feedbackId</code> similar to <code>userId</code>/<code>paymentId</code></b></summary>
+
+Remember that, It's not necessary to have a PRIMARY KEY on a table. If we have some queries which reference a particular row, presence of PRIMARY KEY is an advantage. In Feedbacks table, We DON'T have any query which is specific to one particular feedback. Where as in Payments table, Consider, making a payment, approving a payment etc... which correspond to one particular payment.
+
+</details>
+
 - Regarding above question, Indices used in `Feedbacks`/`Payments` tables are well suited here, to enforce the constraints. For example, there are two payments for every license every month. There is an `UNIQUE KEY` enforces just that.
 
 - Same goes `Feedbacks` table. One Customer can submit a feedback to one License once. The chosen PRIMARY KEY does just this.
@@ -41,7 +47,6 @@ There are no tables which uses rows from `Feedbacks`/`Payments` table. So, `feed
   - Run below queries in MySQL shell as **root** user, to create database.
 
   ```sql
-  mysql> SET GLOBAL event_scheduler = ON;
   mysql> CREATE DATABASE MarketServices;
   mysql> CREATE USER 'MarketAdmin'@'localhost' IDENTIFIED BY 'Y@8e=nZNJgnQhC@a';
   mysql> GRANT ALL PRIVILEGES ON MarketServices.* TO 'MarketAdmin'@'localhost';

@@ -29,7 +29,8 @@ function useProvideAuth() {
         email,
         password
       });
-      const { token, userRole, expiresIn } = response.data;
+      console.log(response.data);
+      const { token, userRole, expiresIn, gatepass } = response.data;
       const options = {
         expires: new Date(expiresIn)
       };
@@ -38,7 +39,8 @@ function useProvideAuth() {
       Cookies.set("userRole", userRole, options);
       setUser({
         email,
-        userRole
+        userRole,
+        gatepass
       });
     } catch (err) {
       throw err;

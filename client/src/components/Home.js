@@ -1,27 +1,32 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../use-auth";
 import { DataGrid } from "@mui/x-data-grid";
-import Button from "@mui/material/Button";
-import Alert from "@mui/material/Alert";
 
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogActions from "@mui/material/DialogActions";
-import Slide from "@mui/material/Slide";
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
+  Slide,
+  TextField,
+  Grid,
+  Typography,
+  Rating
+} from "@mui/material";
 
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
+import {
+  SentimentVeryDissatisfied as SentimentVeryDissatisfiedIcon,
+  SentimentDissatisfied as SentimentDissatisfiedIcon,
+  SentimentSatisfied as SentimentSatisfiedIcon,
+  SentimentSatisfiedAlt as SentimentSatisfiedAltIcon,
+  SentimentVerySatisfied as SentimentVerySatisfiedIcon
+} from "@mui/icons-material";
 
-import Rating from "@mui/material/Rating";
-import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
-import SentimentDissatisfiedIcon from "@mui/icons-material/SentimentDissatisfied";
-import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
-import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAltOutlined";
-import SentimentVerySatisfiedIcon from "@mui/icons-material/SentimentVerySatisfied";
-
+import { ToastContainer, toast } from "react-toastify";
+import { toastOptions } from "../utils";
 import axios from "../axios";
 
 const customIcons = {
@@ -59,10 +64,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function FeedbackDialog({ dialogInfo, onClose }) {
   const [value, setValue] = useState(3);
   const [hover, setHover] = useState(-1);
-  const [alert, setAlert] = useState({
-    severity: null,
-    message: null
-  });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -73,29 +74,15 @@ function FeedbackDialog({ dialogInfo, onClose }) {
         rating: (rating.value - 3) * 5,
         remarks: remarks.value
       });
-      setAlert({
-        severity: "info",
-        message: "Feedback Sent Succesfully"
-      });
-      setAlert({
-        severity: null,
-        message: null
-      });
-      setHover(-1);
-      setValue(3);
-      onClose();
+      toast.success(response.data.message, toastOptions);
     } catch (err) {
-      setAlert({
-        severity: "error",
-        message: err.response.data.message
-      });
+      toast.error(err.response.data.message, toastOptions);
     }
-    onClose();
   };
 
   return (
     <Dialog
-      open={dialogInfo.open}
+      open={dialogInfo.open === "Feedback"}
       onClose={onClose}
       maxWidth="lg"
       fullWidth={true}
@@ -110,9 +97,6 @@ function FeedbackDialog({ dialogInfo, onClose }) {
         Feedback
       </DialogTitle>
       <DialogContent>
-        {alert.message && (
-          <Alert severity={alert.severity}>{alert.message}</Alert>
-        )}
         <Grid
           container
           alignItems="center"
@@ -200,27 +184,96 @@ function FeedbackDialog({ dialogInfo, onClose }) {
   );
 }
 
+function ExtendLicense({ dialogInfo, onClose }) {
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const endDate = event.target.endDate.value;
+    try {
+      const response = await axios.post("/license/extend", {
+        licenseId: dialogInfo.licenseId,
+        endDate
+      });
+      toast.success(response.data.message, toastOptions);
+    } catch (err) {
+      toast.error(err.response.data.message, toastOptions);
+    }
+  };
+
+  return (
+    <Dialog
+      open={dialogInfo.open === "License"}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth={true}
+      TransitionComponent={Transition}
+    >
+      <DialogTitle>Extend License</DialogTitle>
+      <Typography
+        sx={{
+          fontWeight: "light",
+          fontSize: "1.75em",
+          marginRight: 3,
+          textAlign: "center"
+        }}
+      >
+        {dialogInfo.shopKeeperName}@<u>{dialogInfo.shopName}</u>
+      </Typography>
+
+      <DialogContent>
+        <form onSubmit={handleSubmit}>
+          <Grid container justifyContent="center" spacing={2}>
+            <Grid item xs={12}>
+              <label htmlFor="licenseEndDate">New End Date: </label>
+              <input type="date" id="licenseEndDate" name="endDate" />
+            </Grid>
+
+            <Grid item xs={5}>
+              <Button type="submit" variant="contained" fullWidth>
+                Submit
+              </Button>
+            </Grid>
+            <Grid item xs={5}>
+              <Button onClick={onClose} variant="contained" fullWidth>
+                Close
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Home() {
-  const [licenses, setLicenses] = useState([]);
   const { user } = useAuth();
+  const [licenses, setLicenses] = useState([]);
   const [dialogInfo, setDialogInfo] = useState({
     open: false
   });
+  const { state } = useLocation();
 
   const handleFeedbackDialogOpen = (params) => {
     setDialogInfo({
       ...dialogInfo,
-      open: true,
+      open: "Feedback",
       licenseId: params.row.licenseId,
       shopKeeperName: params.row.fullName,
       shopName: params.row.shopName
     });
   };
-  const handleFeedbackDialogClose = () => {
+  const handleFeedbackDialogClose = async () => {
+    await fetchLicenses();
     setDialogInfo({
-      ...dialogInfo,
-      open: false,
-      licenseId: null
+      open: false
+    });
+  };
+  const handleLicenseDialogOpen = (params) => {
+    setDialogInfo({
+      open: "License",
+      shopKeeperUserId: params.row.shopKeeperUserId,
+      licenseId: params.row.licenseId,
+      shopKeeperName: params.row.fullName,
+      shopName: params.row.shopName
     });
   };
 
@@ -228,7 +281,7 @@ export default function Home() {
     {
       field: "licenseId",
       headerName: "License Id",
-      flex: 0.5,
+      flex: 0.25,
       type: "number"
     },
     {
@@ -245,7 +298,7 @@ export default function Home() {
     {
       field: "startDate",
       headerName: "Start Date",
-      flex: 1,
+      flex: 0.5,
       type: "dateTime",
       valueFormatter: ({ value }) =>
         new Date(value).toLocaleString("en-US", {
@@ -257,7 +310,7 @@ export default function Home() {
     {
       field: "endDate",
       headerName: "End Date",
-      flex: 1,
+      flex: 0.5,
       type: "dateTime",
       valueFormatter: ({ value }) =>
         new Date(value).toLocaleString("en-US", {
@@ -281,9 +334,7 @@ export default function Home() {
         </Button>
       )
     });
-  }
-
-  if (user && user.userRole === "SHOPKEEPER") {
+  } else if (user && user.userRole === "SHOPKEEPER") {
     columns.push({
       field: "rentPerMonth",
       headerName: "Rent / Month",
@@ -294,19 +345,39 @@ export default function Home() {
           currency: "INR"
         }).format(params.value)
     });
+  } else if (user && user.userRole === "ADMIN") {
+    columns.push({
+      field: "",
+      headerName: "Extend License",
+      flex: 0.5,
+      renderCell: (params) => (
+        <Button
+          onClick={() => handleLicenseDialogOpen(params)}
+          variant="contained"
+        >
+          Extend
+        </Button>
+      )
+    });
   }
 
-  useEffect(() => {
-    async function fetchLicenses() {
-      try {
-        const response = await axios.get("/license/all");
-        setLicenses(response.data);
-      } catch (err) {
-        console.log("[fetchLicensesError] = ", err);
-      }
+  const fetchLicenses = async () => {
+    try {
+      const response = await axios.get("/license/all");
+      setLicenses(response.data);
+    } catch (err) {
+      toast.error("Error Fetching Licenses", toastOptions);
     }
-    fetchLicenses();
+  };
+
+  useEffect(() => {
+    if (state && state.showAlert)
+      toast.success("Logged in successfully!", toastOptions);
+
+    if (user) fetchLicenses();
   }, []);
+
+  console.log(user);
 
   return user && licenses ? (
     <div style={{ height: "80vh", width: "100%" }}>
@@ -314,6 +385,25 @@ export default function Home() {
         dialogInfo={dialogInfo}
         onClose={handleFeedbackDialogClose}
       />
+      <ExtendLicense
+        dialogInfo={dialogInfo}
+        onClose={handleFeedbackDialogClose}
+      />
+      <ToastContainer />
+      {user.userRole === "SHOPKEEPER" &&
+        user.gatepass &&
+        Math.abs(new Date() - new Date(user.gatepass.endDate)) /
+          (1000 * 60 * 60 * 24) <=
+          30 && (
+          <Alert severity="info" sx={{ marginBottom: 2 }}>
+            Your gatepass is expiring in{" "}
+            {Math.ceil(
+              Math.abs(new Date() - new Date(user.gatepass.endDate)) /
+                (1000 * 60 * 60 * 24)
+            )}{" "}
+            days!
+          </Alert>
+        )}
       <DataGrid
         getRowId={(row) => row.licenseId}
         rows={licenses}

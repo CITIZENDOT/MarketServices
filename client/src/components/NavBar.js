@@ -2,27 +2,34 @@ import React, { useState } from "react";
 import { useAuth } from "../use-auth";
 import { styled, useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
-import Box from "@mui/material/Box";
-import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
-import CssBaseline from "@mui/material/CssBaseline";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import HomeIcon from "@mui/icons-material/Home";
-import PersonIcon from "@mui/icons-material/Person";
-import LoginIcon from "@mui/icons-material/Login";
-import LogoutIcon from "@mui/icons-material/Logout";
-import LockOpenIcon from "@mui/icons-material/LockOpen";
-import MoneyIcon from "@mui/icons-material/Money";
+
+import {
+  Box,
+  Drawer as MuiDrawer,
+  AppBar as MuiAppBar,
+  Toolbar,
+  List,
+  CssBaseline,
+  Typography,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from "@mui/material";
+
+import {
+  Home as HomeIcon,
+  Person as PersonIcon,
+  Login as LoginIcon,
+  Logout as LogoutIcon,
+  LockOpen as LockOpenIcon,
+  Money as MoneyIcon,
+  Mail as MailIcon,
+  Menu as MenuIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon
+} from "@mui/icons-material";
 
 const drawerWidth = 240;
 
@@ -152,12 +159,21 @@ export default function Nav({ children }) {
                 </ListItemIcon>
                 <ListItemText primary="Profile" />
               </ListItem>
-              {user.userRole === "SHOPKEEPER" && (
+              {(user.userRole === "SHOPKEEPER" ||
+                user.userRole === "ADMIN") && (
                 <ListItem button component={Link} to="/payments">
                   <ListItemIcon>
                     <MoneyIcon />
                   </ListItemIcon>
                   <ListItemText primary="Payments" />
+                </ListItem>
+              )}
+              {user.userRole === "ADMIN" && (
+                <ListItem button component={Link} to="/feedbacks">
+                  <ListItemIcon>
+                    <MailIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Feedbacks" />
                 </ListItem>
               )}
               <ListItem button component={Link} to="/change-password">

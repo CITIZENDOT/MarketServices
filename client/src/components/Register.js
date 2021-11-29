@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Link, Redirect } from "react-router-dom";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
-import Container from "@mui/material/Container";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import {
+  Box,
+  Grid,
+  Container,
+  TextField,
+  Button,
+  Radio,
+  RadioGroup,
+  FormControlLabel
+} from "@mui/material";
+
 import axios from "../axios";
 
 export default function Register() {

@@ -2,8 +2,10 @@ const router = require("express").Router();
 const {
   insertPayment,
   getPaymentsByShopKeeperId,
-  getPaymentById,
-  makePayment
+  makePayment,
+  confirmPayment,
+  getPendingPayments,
+  getAllPayments
 } = require("../controllers/Payments");
 const { getLicenseById } = require("../controllers/Licenses");
 const { isLoggedIn, isShopKeeper, isAdmin } = require("../middlewares/user");
@@ -55,6 +57,46 @@ router.get(
     } catch (err) {
       return res.status(400).json({
         message: err.message
+      });
+    }
+  }
+);
+
+router.get("/pending", isLoggedIn, isAdmin, async function (req, res) {
+  try {
+    const rows = await getPendingPayments();
+    return res.status(200).json(rows);
+  } catch (err) {
+    return res.status(400).json({
+      message: err
+    });
+  }
+});
+
+router.get("/all", isLoggedIn, isAdmin, async function (req, res) {
+  try {
+    const rows = await getAllPayments();
+    return res.status(200).json(rows);
+  } catch (err) {
+    return res.status(400).json({
+      message: err
+    });
+  }
+});
+
+router.get(
+  "/confirm/:paymentId",
+  isLoggedIn,
+  isAdmin,
+  async function (req, res) {
+    const paymentId = req.params.paymentId;
+    try {
+      const message = await confirmPayment(paymentId);
+      return res.status(200).json({ message });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({
+        message: "Internal Error. Please Try again"
       });
     }
   }

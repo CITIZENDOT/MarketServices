@@ -1,5 +1,6 @@
 import { insertUser, getAllUsers } from "./controllers/Users.js";
 import { insertShop, getAllShops } from "./controllers/Shops.js";
+import { insertGatepass } from "./controllers/Gatepasses.js";
 import { insertLicense } from "./controllers/Licenses.js";
 import faker from "faker";
 
@@ -11,13 +12,7 @@ function randomDate(MIN, MAX) {
   return new Date(randomInteger(MIN.getTime(), MAX.getTime()));
 }
 
-/**
- * Default behaviour below(can be configured from arguments)
- * Inserts 14 users in total.
- * 5 CUSTOMERs
- * 7 SHOPKEEPERs
- * 2 ADMINs
- */
+
 async function insertFakeUsers(
   customerCount = 5,
   shopKeeperCount = 7,
@@ -69,10 +64,6 @@ async function insertFakeUsers(
   }
 }
 
-/**
- * Default behaviour below(can be configured from arguments)
- * Inserts 6 Shops
- */
 async function insertFakeShops(shopCount = 6) {
   // 6 Shops
   for (let i = 0; i < shopCount; i++) {
@@ -103,11 +94,20 @@ async function insertFakeLicenses(shopKeepers, shops) {
   }
 }
 
+async function insertGatePasses(shopKeepers) {
+  shopKeepers.forEach(async (user, i) => {
+    await insertGatepass({
+      shopKeeperUserId: user.userId,
+      endDate: randomDate(new Date("2021-11-30"), new Date("2023-01-01"))
+    });
+  });
+}
+
 async function main() {
-  const customerCount = 5,
-    shopKeeperCount = 7,
-    adminCount = 2,
-    shopCount = 6;
+  const customerCount = 10,
+    shopKeeperCount = 10,
+    adminCount = 3,
+    shopCount = 10;
   await insertFakeUsers(customerCount, shopKeeperCount, adminCount);
   await insertFakeShops(shopCount);
 
@@ -115,6 +115,8 @@ async function main() {
   const shops = await getAllShops();
   const shopKeepers = users.filter((user) => user.userRole === "SHOPKEEPER");
   await insertFakeLicenses(shopKeepers, shops);
+  await insertGatePasses(shopKeepers);
+  console.log("Done");
 }
 
 await main();

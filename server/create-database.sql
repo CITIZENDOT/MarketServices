@@ -32,8 +32,6 @@ CREATE TABLE `Shops`(
 );
 
 
--- TODO: Create an Event Scheduler, to check license validity every day.
--- TODO: Create Notifications Table, and store reminder mail details there.
 CREATE TABLE `Licenses`(
     `licenseId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `shopKeeperUserId` INT NOT NULL,
@@ -45,14 +43,14 @@ CREATE TABLE `Licenses`(
 );
 
 
--- TODO: If `paymentType` == 'RENT', Assert `rentPerMonth` = `amount` with BEFORE INSERT trigger.
 CREATE TABLE `Payments`(
     `paymentId` INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     `licenseId` INT NOT NULL,
     `paymentType` VARCHAR(15) CHECK (`paymentType` IN ('RENT', 'ELECTRICITY')) NOT NULL,
     `amount` INT NOT NULL,
-    `penalty` INT NOT NULL,
+    `penalty` INT NOT NULL DEFAULT 0,
     `dueDate` DATE NOT NULL,
+    `paymentStatus` VARCHAR(20) CHECK(`paymentStatus` IN ('NOT PAID', 'PENDING APPROVAL', 'PAID')) NOT NULL DEFAULT 'NOT PAID',
     `paymentDate` DATE,
     -- UNIQUE KEY because PRIMARY KEY doesn't support Functional Keys
     UNIQUE KEY (`licenseId`, `paymentType`, (YEAR(`dueDate`)), (MONTH(`dueDate`))),

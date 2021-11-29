@@ -25,6 +25,22 @@ async function insertUser(userProps) {
   }
 }
 
+async function updateUser(userId, firstName, lastName, email) {
+  try {
+    await db.execute(
+      "UPDATE Users SET firstName = ?, lastName = ?, email = ? WHERE userId = ?",
+      [firstName, lastName, email, userId]
+    );
+    return "Profile Successfully updated";
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY")
+      throw Error(
+        "A user already exists with email. Please use different email"
+      );
+    throw Error("Failed to update profile. Please try again");
+  }
+}
+
 async function getUser(email, password) {
   if (!(email && password)) throw Error("Email/Password cannot be empty");
   try {
@@ -67,6 +83,7 @@ async function getAllUsers() {
 module.exports = {
   insertUser,
   getUser,
+  updateUser,
   changePassword,
   getAllUsers
 };
