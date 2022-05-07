@@ -1,6 +1,4 @@
-# Market Services
-
-![Demo](./CS355-Demo.mp4)
+# Market Services (_[Video Demo](https://youtu.be/fu06r9B5IAI)_)
 
 On our campus (IIT Patna), there are many shops rented by the administration to the private shopkeepers. The administration needs to issue licenses to the shopkeepers for a while, after which the license expires. The license can be renewed/canceled by the administration. The administration thought that it's better to ask the customers (students, people on the campus, etc...) for feedback on individual shops and shopkeepers on their service and then decide whether to extend or cancel the license.
 
